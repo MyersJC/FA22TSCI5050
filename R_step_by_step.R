@@ -53,6 +53,7 @@ whatisthis <- function(xx){
 foo <- 500;
 bar <- foo <- 500;
 bar <- foo;
+hello <- 100;
 #' It's not a formal rule, it's rarely even written down, but `foo`, `baz`,
 #' `bat`, etc. are throw-away variables people use for testing. If you need more
 #' test variables, just make up three letter ones that start with `b`.
@@ -133,6 +134,7 @@ foo>50 | shoo<50
 !(shoo>50);  #' using NOT operator
 ! foo>50 & shoo>50
 
+
 #' Missing values are represented by `NA` (no quotes for any of these). Null
 #' values are _not_ the same as missing and they are represented by `NULL`. In
 #' some circumstances you might also run into `Inf`, `-Inf`, and `NaN`. These
@@ -209,7 +211,7 @@ c(baz,foo,"76")
 #' You can also assign or re-assign names later using the `names()` function.
 
 #+ vectors_names1, error=TRUE
-jar <- c(a="cat", best="dog", c= "fish", slow="tutle")
+jar <- c(a="cat", best="dog", c= "fish", slow="turtle")
 print(jar)
 # jar[best]
 jar["best"]
