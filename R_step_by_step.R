@@ -1,6 +1,6 @@
 #'---
 #' title: "TSCI 5050: Introduction to Data Science"
-#' author: 'Author One ^1^, Author Two ^1^'
+#' author: 'Author One JC MYERS ^1^, Author Two ^1^'
 #' abstract: |
 #'  | Provide a summary of objectives, study design, setting, participants,
 #'  | sample size, predictors, outcome, statistical analysis, results,
@@ -33,6 +33,7 @@ library(pander); # format tables
 library(printr); # set limit on number of lines printed
 library(broom); # allows to give clean dataset
 library(dplyr); #add dplyr library
+library(survival);
 
 options(max.print=42);
 panderOptions('table.split.table',Inf); panderOptions('table.split.cells',Inf);
@@ -325,16 +326,61 @@ iris [["Species"]]
 #+ df_columnsrows
 iris[4:10,prevar]
 
+#' load the veteran cancer dataset
+data(veteran)
+#sequence of rows from a specific row to another
+1:nrow(veteran)
+#entire sequence of rows
+seq_len(nrow(veteran))
+#to randomly select any 5 rows from the table
+sample(seq_len(nrow(veteran)), 5)
+mycolumn <- "time"
+veteran[[mycolumn]]
+#extract time value for the 5 first rows
+veteran[[mycolumn]][1:5]
+#extract time value for random 5 rows
+veteran[[mycolumn]][sample(seq_len(nrow(veteran)), 5)]
+veteran$time[sample(seq_len(nrow(veteran)), 5)]
+veteran[ ,mycolumn][sample(seq_len(nrow(veteran)), 5)]
+veteran[sample(seq_len(nrow(veteran)), 5),mycolumn]
+veteran
+veteran[sample(seq_len(nrow(veteran)), 5),mycolumn] <- NA
+veteran
+#'recreating veteran dataset
+rm(veteran)
+data("veteran")
+names(veteran)
+mycolumns <- names(veteran)
+#' randomly removing values from each column
+for (xx in mycolumns) {print(xx)
+  
+}
+for (xx in mycolumns) {
+  message("processing ", xx)
+  veteran[sample(seq_len(nrow(veteran)), 5),xx] <- NA
+  
+}
+veteran
+veteran$time
+is.na(veteran$time)
+#' replace missing time with max survival time
+ifelse(is.na(veteran$time), max(veteran$time,na.rm = TRUE), veteran$time)
+
 #' # Datasets and `dplyr`
 #+ Working with datasets and DPLYR
+veteran[[mycolumn]][sample(seq_len(nrow(veteran)), 5)]
+nrow(veteran) %>% seq_len() %>% sample(5) %>% slice(veteran, .) %>% select(mycolumn) %>% unlist %>% unname
+#in the pipeline, what's on the left of the pipe operator %>% becomes the first argument for the expression to the right of the pipe. if I want the expression to become second argument or else, i put "." in the place that I want it.
+# slice if for choosing rows from the dataset
+nrow(veteran) %>% seq_len() %>% sample(5) %>% slice(veteran, .) %>% pull(mycolumn)
 
-r"(/Users/YOURNAME/Desktop/projects/tsci/TSCI 5050 self/dataset)" %>% gsub("////","/",.) # to replace anything in the address
-list.files("/Users/YOURNAME/Desktop/projects/tsci/TSCI 5050 self/dataset") # to see anyfiles in the folder
-
-dtset <- list.files("/Users/YOURNAME/Desktop/projects/tsci/TSCI 5050 self/dataset", full.names = TRUE) %>%
-  sapply(import) %>% setNames(.,basename(names(.))) # to change the base names
-example1 <- dtset
-example2 <- example1$Birthweight.sav
+# r"(/Users/YOURNAME/Desktop/projects/tsci/TSCI 5050 self/dataset)" %>% gsub("////","/",.) # to replace anything in the address
+# list.files("/Users/YOURNAME/Desktop/projects/tsci/TSCI 5050 self/dataset") # to see anyfiles in the folder
+# 
+# dtset <- list.files("/Users/YOURNAME/Desktop/projects/tsci/TSCI 5050 self/dataset", full.names = TRUE) %>%
+#   sapply(import) %>% setNames(.,basename(names(.))) # to change the base names
+# example1 <- dtset
+# example2 <- example1$Birthweight.sav
 
 #+ file_import, echo = FALSE
 # #' ## Importing a File
