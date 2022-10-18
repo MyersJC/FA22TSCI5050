@@ -396,12 +396,20 @@ group_by(veteran3, trt) %>%
 Nulltime <- time~1
 Karnotime <- update(Nulltime,.~.+karno)
 update(Karnotime,.~.-karno)
-update(Karnotime,.~.+diagtime)
+predictors <- update(Karnotime,.~.+diagtime)
+formulas <- list(Nulltime = Nulltime, Karnotime = Karnotime, predictors=predictors)
 update(Karnotime,.~.+diagtime+prior)
-VetLM <- lm(time~karno,veteran3)
+VetLM <- lm(time~1,veteran3)
 VetLM
 summary(VetLM)
 tidy(VetLM)
+mean(veteran3$time,na.rm=TRUE)
+update(VetLM,.~.+karno)
+
+
+
+## Automatically fitting multiple linear models
+lapply(formulas,lm,data=veteran3)
 
 summary(VetLM) # gives detail summary
 summary(VetLM)$coeff # gives coefficient column
