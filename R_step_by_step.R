@@ -373,80 +373,51 @@ nrow(veteran) %>% seq_len() %>% sample(5) %>% slice(veteran, .) %>% select(mycol
 #in the pipeline, what's on the left of the pipe operator %>% becomes the first argument for the expression to the right of the pipe. if I want the expression to become second argument or else, i put "." in the place that I want it.
 # slice if for choosing rows from the dataset
 nrow(veteran) %>% seq_len() %>% sample(5) %>% slice(veteran, .) %>% pull(mycolumn)
+export(veteran,"veteran.xlsx")
+export(veteran,"veteran.csv")
+export(veteran,"veteran.tsv")
 
-# r"(/Users/YOURNAME/Desktop/projects/tsci/TSCI 5050 self/dataset)" %>% gsub("////","/",.) # to replace anything in the address
-# list.files("/Users/YOURNAME/Desktop/projects/tsci/TSCI 5050 self/dataset") # to see anyfiles in the folder
-# 
-# dtset <- list.files("/Users/YOURNAME/Desktop/projects/tsci/TSCI 5050 self/dataset", full.names = TRUE) %>%
-#   sapply(import) %>% setNames(.,basename(names(.))) # to change the base names
-# example1 <- dtset
-# example2 <- example1$Birthweight.sav
+#' #' ## Introduction to `dplyr`
+veteran2 <- import("veteran.xlsx",which=1)
+veteran3 <- mutate(veteran2, trt=factor(trt, levels=1:2, labels=c("standard","test"))
+                   , prior=factor(prior, levels=c(0,10), labels=c("no","yes"))
+                   , sim_derivative=replicate(n(),sample(10,1) %>% runif() %>% paste(collapse=";"))
+                   ,diagtimedays=diagtime*30)
 
-#+ file_import, echo = FALSE
-# #' ## Importing a File
-# birthweight <- import("/Users/harshitgarg/Desktop/projects/tsci/TSCI 5050 self/dataset/Birthweight.sav")
-#
-# #' ## Introduction to `dplyr`
-# mutate(birthweight, AGE=AGE*12) %>% View() # converting age to months
-# mutate(birthweight, AGEMonths =AGE*12) %>% head() # converting age to months and adding as column
-# mutate(birthweight, AGEMonths = AGE*12, AGEdays= AGEMonths*30.25) %>% View
-# table(birthweight$RACE) # extract a column from a dataset
-# with(birthweight, case_when(RACE== 1~ "Caucasian", RACE== 2~"ASIAN", RACE== 3~ "AFRICAN AMERICAN/BLACK", TRUE~ as.character(RACE))) %>% table()
-#
-# #' Assigning Descriptive Values to a Code
-# mutate(birthweight, AGEMonths = AGE*12, AGEdays= AGEMonths*30.25,
-#        RACEName= case_when(RACE== 1~ "Caucasian",
-#                            RACE== 2~"ASIAN",
-#                            RACE== 3~ "AFRICAN AMERICAN/BLACK",
-#                            TRUE~ as.character(RACE))) %>% head()
-#
-# summary(birthweight$BWT)
-#
-# #' ## The `summarise()` Function
-# #'
-# summary(birthweight$BWT) # gives summary of the particular column min/max, median, quartiles
-# summary(birthweight) # gives summary of all columns min/max, median, quartiles
-# summarise(birthweight) # gives columns and rows in dataset
-# summarise(birthweight, age=median(AGE)) # gives summary measure for a column
-# summarise(birthweight, age=median(AGE), height= median(HT), meanage= mean(AGE))
-# table(birthweight$SMOKE)
-# group_by(birthweight,SMOKE) %>% summarise(birthweight, age=median(AGE), height= median(HT), meanage= mean(AGE))
-# group_by(birthweight,SMOKE) %>% summarise(height= median(HT), meanage= mean(AGE))
-# group_by(birthweight,SMOKE) %>% summarise(across(where(is.numeric),mean)) # summarise dataset by group and give mean for each column
-# group_by(birthweight,SMOKE) %>% summarise(across(where(is.numeric),sd))
-#
-# group_by(birthweight,SMOKE) %>% summarise(across(where(is.numeric),mean, .names = '{.col}_mean'),
-#                                           across(where(is.numeric),sd, .names = '{.col}_sd'))  # gives mean and SD
-#
-# group_by(birthweight,SMOKE) %>% summarise(across(where(is.numeric),list(mean,sd))) # gives list of mean and SD of each column but doesnt tell the names
-# group_by(birthweight,SMOKE) %>% summarise(across(where(is.numeric),list(Mn=mean,StD=sd,Md=median,InQR=IQR))) # gives list of mean and SD and also its names
-# group_by(birthweight,SMOKE) %>% summarise(across(where(is.numeric),list(Mn=mean,StD=sd,Md=median,InQR=IQR))) %>% View # gives all the list and view it
-# group_by(birthweight,SMOKE) %>% mutate(across(where(is.numeric),list(Mn=mean,StD=sd,Md=median,InQR=IQR))) %>% View # gives new columns of aggregate function for each group
+summarise(veteran3, Sample_size=n(), median_survival=median(time, na.rm=TRUE)
+          , mean_survival=mean(status, na.rm=TRUE))
 
-
-#' Define location of your files
-#'
+group_by(veteran3, trt) %>%
+  summarise(Sample_size=n(), median_survival=median(time, na.rm=TRUE), mean_survival=mean(status, na.rm=TRUE))
 
 #' # Linear Models
 #+ linear_models
-example(lm) # a sample for linear model
 
-perf <- lm(mpg~hp+wt+qsec,mtcars)
-summary(perf) # gives detail summary
-summary(perf)$coeff # gives coefficient column
-glance(perf) #gives brief
-tidy(perf) # gives tidy cleaner version inside
+Nulltime <- time~1
+Karnotime <- update(Nulltime,.~.+karno)
+update(Karnotime,.~.-karno)
+update(Karnotime,.~.+diagtime)
+update(Karnotime,.~.+diagtime+prior)
+VetLM <- lm(time~karno,veteran3)
+VetLM
+summary(VetLM)
+tidy(VetLM)
+
+summary(VetLM) # gives detail summary
+summary(VetLM)$coeff # gives coefficient column
+glance(VetLM) #gives brief
+tidy(VetLM) # gives tidy cleaner version inside
 lm(mpg~hp+wt+vs,mtcars) %>% tidy() %>% select(c("estimate","p.value"))
 #+ Debugging
-perf %>% tidy() %>% select(c("estimate","p.value"))
-perf %>% tidy() %>% select(c("estimate","p.value")) %>% slice(-1) # removes top row
-perf %>% tidy() %>% select(c("estimate","p.value")) %>% slice((1:3)) # gives 1 to 3 rows
-perf %>% tidy() %>% select(c("estimate","p.value")) %>% slice(-(1:3)) # removes 1 to 3 rwos
-whatisthis(perf) # gives class of the variable
+VetLM %>% tidy() %>% select(c("estimate","p.value"))
+VetLM %>% tidy() %>% select(c("estimate","p.value")) %>% slice(-1) # removes top row
+VetLM %>% tidy() %>% select(c("estimate","p.value")) %>% slice((1:3)) # gives 1 to 3 rows
+VetLM %>% tidy() %>% select(c("estimate","p.value")) %>% slice(-(1:3)) # removes 1 to 3 rwos
+whatisthis(VetLM) # gives class of the variable
 
-#' View(perf) # view inside of object
+#' View(VetLM) # view inside of object
 
 #+ ## multiple comparison
-perf %>% tidy() %>% select(c("p.value")) %>% slice(-1)
-#'perf %>% tidy() %>% select(c("p.value")) %>% slice(-1) %>% p.adjust()
-perf %>% tidy() %>% select(c("p.value")) %>% slice(-1) %>% unlist() %>% p.adjust()
+VetLM %>% tidy() %>% select(c("p.value")) %>% slice(-1)
+#'VetLM %>% tidy() %>% select(c("p.value")) %>% slice(-1) %>% p.adjust()
+VetLM %>% tidy() %>% select(c("p.value")) %>% slice(-1) %>% unlist() %>% p.adjust()
