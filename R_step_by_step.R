@@ -34,6 +34,8 @@ library(printr); # set limit on number of lines printed
 library(broom); # allows to give clean dataset
 library(dplyr); #add dplyr library
 library(survival);
+library(DataExplorer);
+library(explore);
 
 options(max.print=42);
 panderOptions('table.split.table',Inf); panderOptions('table.split.cells',Inf);
@@ -409,7 +411,7 @@ update(VetLM,.~.+karno)
 
 
 ## Automatically fitting multiple linear models
-lapply(formulas,lm,data=veteran3)
+vetlmmodels <- lapply(formulas,function(xx) lm(xx,data=veteran3) %>% update(.~.))
 
 summary(VetLM) # gives detail summary
 summary(VetLM)$coeff # gives coefficient column
@@ -429,3 +431,14 @@ whatisthis(VetLM) # gives class of the variable
 VetLM %>% tidy() %>% select(c("p.value")) %>% slice(-1)
 #'VetLM %>% tidy() %>% select(c("p.value")) %>% slice(-1) %>% p.adjust()
 VetLM %>% tidy() %>% select(c("p.value")) %>% slice(-1) %>% unlist() %>% p.adjust()
+
+plot(vetlmmodels$predictors)
+vetlmmodels
+create_report(veteran3)
+plot_correlation(na.omit(veteran3))
+plot_correlation(veteran3,cor_args = list(use = "pairwise.complete.obs"))
+dummify(veteran3[,-9]) %>% cor(use='pairw')
+dummify(select(veteran3,-"sim_derivative")) %>% cor(use='pairw')
+
+explore(veteran3)
+binarize(select(veteran3,-"sim_derivative")) %>% cor(use='pairw', target = "time")
