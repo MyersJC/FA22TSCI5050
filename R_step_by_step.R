@@ -36,6 +36,7 @@ library(dplyr); #add dplyr library
 library(survival);
 library(DataExplorer);
 library(explore);
+library(correlationfunnel)
 
 options(max.print=42);
 panderOptions('table.split.table',Inf); panderOptions('table.split.cells',Inf);
@@ -375,7 +376,7 @@ nrow(veteran) %>% seq_len() %>% sample(5) %>% slice(veteran, .) %>% select(mycol
 #in the pipeline, what's on the left of the pipe operator %>% becomes the first argument for the expression to the right of the pipe. if I want the expression to become second argument or else, i put "." in the place that I want it.
 # slice if for choosing rows from the dataset
 nrow(veteran) %>% seq_len() %>% sample(5) %>% slice(veteran, .) %>% pull(mycolumn)
-export(veteran,"veteran.xlsx")
+export(veteran,"veteran.xlsx",overwrite = TRUE)
 export(veteran,"veteran.csv")
 export(veteran,"veteran.tsv")
 
@@ -434,11 +435,15 @@ VetLM %>% tidy() %>% select(c("p.value")) %>% slice(-1) %>% unlist() %>% p.adjus
 
 plot(vetlmmodels$predictors)
 vetlmmodels
-create_report(veteran3)
+#create_report(veteran3)
 plot_correlation(na.omit(veteran3))
 plot_correlation(veteran3,cor_args = list(use = "pairwise.complete.obs"))
 dummify(veteran3[,-9]) %>% cor(use='pairw')
 dummify(select(veteran3,-"sim_derivative")) %>% cor(use='pairw')
 
-explore(veteran3)
-binarize(select(veteran3,-"sim_derivative")) %>% cor(use='pairw', target = "time")
+#explore(veteran3)
+predictorstotime <- na.omit(veteran3) %>% select(-"sim_derivative") %>% binarize()
+predictorscorr <- correlate(predictorstotime, use='pairw', target=grep(pattern="^time.*Inf$", names(predictorstotime) , value = TRUE))
+plot_correlation_funnel(predictorscorr)
+
+export(veteran3,"projectdata.xlsx")
